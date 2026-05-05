@@ -1,1 +1,57 @@
 
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RS Outperformer</title>
+</head>
+
+<body style="background:#0b0f14; color:white; font-family:Arial; padding:20px;">
+
+<h2>📊 RS Outperformers (vs Nifty 50)</h2>
+
+<div id="output">Loading data...</div>
+
+<script>
+async function loadRSData() {
+  const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRTaVtb-FNbgm4pn8bhfidqN5a7gBcy2WoWYKnuG4FeWzs-J_HIC-rS-vs-_elJchZ9dezAKbxr8pSc/pub?output=csv";
+
+  const res = await fetch(url);
+  const text = await res.text();
+
+  const rows = text.split("\n").slice(1);
+
+  const data = rows.map(r => {
+    const cols = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+
+    return {
+      symbol: cols[0],
+      rs: parseFloat(cols[6]),
+      sector: cols[4]
+    };
+  }).filter(d => !isNaN(d.rs));
+
+  // sort highest RS first
+  data.sort((a,b) => b.rs - a.rs);
+
+  let html = "";
+
+  data.slice(0,20).forEach(s => {
+    html += `
+      <div style="display:flex;justify-content:space-between;
+                  padding:6px 0;border-bottom:1px solid #222;">
+        <span>${s.symbol}</span>
+        <span style="color:${s.rs>0?'#22c55e':'#ef4444'}">
+          ${s.rs.toFixed(2)}%
+        </span>
+      </div>
+    `;
+  });
+
+  document.getElementById("output").innerHTML = html;
+}
+
+loadRSData();
+</script>
+
+</body>
+</html>
