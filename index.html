@@ -4,12 +4,13 @@
 <head>
   <title>RS Outperformer</title>
 </head>
-
 <body style="background:#0b0f14; color:white; font-family:Arial; padding:20px;">
 
 <h2>📊 RS Outperformers (vs Nifty 50)</h2>
+<div id="rs"></div>
 
-<div id="output">Loading data...</div>
+<h2 style="margin-top:30px;">📊 Sector Leaders</h2>
+<div id="sector"></div>
 
 <script>
 async function loadRSData() {
@@ -30,11 +31,14 @@ async function loadRSData() {
     };
   }).filter(d => !isNaN(d.rs));
 
-  // sort highest RS first
+  renderRS(data);
+  renderSector(data);
+}
+
+function renderRS(data) {
   data.sort((a,b) => b.rs - a.rs);
 
   let html = "";
-
   data.slice(0,20).forEach(s => {
     html += `
       <div style="display:flex;justify-content:space-between;
@@ -47,11 +51,41 @@ async function loadRSData() {
     `;
   });
 
-  document.getElementById("output").innerHTML = html;
+  document.getElementById("rs").innerHTML = html;
+}
+
+function renderSector(data) {
+  const map = {};
+
+  data.forEach(s => {
+    if (!map[s.sector]) map[s.sector] = [];
+    map[s.sector].push(s.rs);
+  });
+
+  const sectorRS = Object.entries(map).map(([k,v]) => ({
+    sector: k,
+    avg: v.reduce((a,b)=>a+b,0)/v.length
+  }));
+
+  sectorRS.sort((a,b)=>b.avg-a.avg);
+
+  let html = "";
+  sectorRS.slice(0,10).forEach(s => {
+    html += `
+      <div style="display:flex;justify-content:space-between;
+                  padding:6px 0;border-bottom:1px solid #222;">
+        <span>${s.sector}</span>
+        <span style="color:${s.avg>0?'#22c55e':'#ef4444'}">
+          ${s.avg.toFixed(2)}
+        </span>
+      </div>
+    `;
+  });
+
+  document.getElementById("sector").innerHTML = html;
 }
 
 loadRSData();
 </script>
 
 </body>
-</html>
